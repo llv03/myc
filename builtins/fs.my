@@ -1,0 +1,21 @@
+// File I/O wrappers around __fs_* natives (cwd-relative paths).
+
+fn read(path) {
+  ret __fs_read(path);
+}
+
+fn write(path, contents) {
+  ret __fs_write(path, contents);
+}
+
+fn append(path, contents) {
+  ret __fs_append(path, contents);
+}
+
+fn exists(path) {
+  ret __fs_exists(path);
+}
+
+fn remove(path) {
+  ret __fs_remove(path);
+}

@@ -1,0 +1,15 @@
+let a = [1, 2, 3];
+out(a);
+out(len(a));
+out(a[0]);
+a[0] = 9;
+out(a[0]);
+
+let m = {"a": 1, "b": 2};
+out(m);
+out(len(m));
+out(m["a"]);
+m["a"] = 10;
+out(m["a"]);
+m["c"] = 3;
+out(len(m));

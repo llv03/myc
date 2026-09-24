@@ -1,0 +1,198 @@
+// HTTP/1.1 helpers on top of builtins/net.my.
+import net;
+
+fn substr(s, start, end) {
+  let r = "";
+  let i = start;
+  let n = len(s);
+  while (i < end) {
+    if (i >= n) { ret r; }
+    if (i < 0) { ret r; }
+    r = r + s[i];
+    i = i + 1;
+  }
+  ret r;
+}
+
+fn find_str(s, needle, from) {
+  let ns = len(s);
+  let nn = len(needle);
+  if (nn == 0) { ret from; }
+  let i = from;
+  while (i + nn <= ns) {
+    let j = 0;
+    let ok = 1;
+    while (j < nn) {
+      if (s[i + j] != needle[j]) {
+        ok = 0;
+        j = nn;
+      } else {
+        j = j + 1;
+      }
+    }
+    if (ok == 1) { ret i; }
+    i = i + 1;
+  }
+  ret 0 - 1;
+}
+
+fn status_reason(status) {
+  if (status == 200) { ret "OK"; }
+  if (status == 201) { ret "Created"; }
+  if (status == 204) { ret "No Content"; }
+  if (status == 400) { ret "Bad Request"; }
+  if (status == 404) { ret "Not Found"; }
+  if (status == 500) { ret "Internal Server Error"; }
+  ret "OK";
+}
+
+fn mk_response(status, content_type, body) {
+  let reason = status_reason(status);
+  let b = body;
+  if (b == nil) { b = ""; }
+  ret "HTTP/1.1 " + str(status) + " " + reason + "\r\n" +
+      "Content-Type: " + content_type + "\r\n" +
+      "Content-Length: " + str(len(b)) + "\r\n" +
+      "Connection: close\r\n" +
+      "\r\n" + b;
+}
+
+fn text(status, body) {
+  ret mk_response(status, "text/plain; charset=utf-8", body);
+}
+
+fn html(status, body) {
+  ret mk_response(status, "text/html; charset=utf-8", body);
+}
+
+fn json(status, body) {
+  ret mk_response(status, "application/json; charset=utf-8", body);
+}
+
+// Parse a raw HTTP request into a map:
+//   method, path, body, raw (and optionally headers as a flat string).
+fn parse_request(raw) {
+  let req = {
+    "method": "GET",
+    "path": "/",
+    "body": "",
+    "raw": raw
+  };
+  if (raw == nil) { ret req; }
+  if (len(raw) == 0) { ret req; }
+
+  let line_end = find_str(raw, "\r\n", 0);
+  let first = raw;
+  if (line_end >= 0) {
+    first = substr(raw, 0, line_end);
+  } else {
+    let nl = find_str(raw, "\n", 0);
+    if (nl >= 0) { first = substr(raw, 0, nl); line_end = nl; }
+  }
+
+  // method
+  let sp1 = find_str(first, " ", 0);
+  if (sp1 < 0) { ret req; }
+  req["method"] = substr(first, 0, sp1);
+
+  // path (stop at space or ?)
+  let sp2 = find_str(first, " ", sp1 + 1);
+  let path = "";
+  if (sp2 < 0) {
+    path = substr(first, sp1 + 1, len(first));
+  } else {
+    path = substr(first, sp1 + 1, sp2);
+  }
+  let q = find_str(path, "?", 0);
+  if (q >= 0) { path = substr(path, 0, q); }
+  req["path"] = path;
+
+  // body after header separator
+  let sep = find_str(raw, "\r\n\r\n", 0);
+  if (sep >= 0) {
+    req["body"] = substr(raw, sep + 4, len(raw));
+  } else {
+    let sep2 = find_str(raw, "\n\n", 0);
+    if (sep2 >= 0) {
+      req["body"] = substr(raw, sep2 + 2, len(raw));
+    }
+  }
+  ret req;
+}
+
+// Callback-based server. handler is a function value: fn(req) → response string.
+// Blocks forever on accept (Ctrl+C to stop). Returns nil if listen fails.
+fn serve(port, handler) {
+  let server = net.listen(port);
+  if (server == nil) {
+    out("http.serve: listen failed on port " + str(port));
+    ret nil;
+  }
+  out("http.serve: listening on port " + str(port));
+  while (true) {
+    let conn = net.accept(server);
+    if (conn == nil) {
+      // transient accept error; keep going
+    } else {
+      let raw = net.recv(conn, 65536);
+      let req = parse_request(raw);
+      let resp = handler(req);
+      if (resp == nil) {
+        resp = text(500, "handler returned nil");
+      }
+      net.send(conn, resp);
+      net.close(conn);
+    }
+  }
+  net.close(server);
+  ret true;
+}
+
+// Static GET demo: routes is a map path → body string.
+fn serve_routes(port, routes) {
+  let server = net.listen(port);
+  if (server == nil) {
+    out("http.serve_routes: listen failed on port " + str(port));
+    ret nil;
+  }
+  out("http.serve_routes: listening on port " + str(port));
+  while (true) {
+    let conn = net.accept(server);
+    if (conn == nil) {
+    } else {
+      let raw = net.recv(conn, 65536);
+      let req = parse_request(raw);
+      let path = req["path"];
+      let body = routes[path];
+      let resp = "";
+      if (body == nil) {
+        resp = text(404, "Not Found");
+      } else {
+        resp = html(200, body);
+      }
+      net.send(conn, resp);
+      net.close(conn);
+    }
+  }
+  ret true;
+}
+
+// Fixed-body helper (no callback needed).
+fn serve_text(port, body) {
+  let server = net.listen(port);
+  if (server == nil) {
+    out("http.serve_text: listen failed");
+    ret nil;
+  }
+  out("http.serve_text: listening on port " + str(port));
+  while (true) {
+    let conn = net.accept(server);
+    if (conn != nil) {
+      let raw = net.recv(conn, 65536);
+      let resp = html(200, body);
+      net.send(conn, resp);
+      net.close(conn);
+    }
+  }
+  ret true;
+}

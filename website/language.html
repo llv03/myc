@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Language - myc</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div class="inner">
+      <a class="logo" href="index.html">myc</a>
+      <button type="button" class="nav-toggle" aria-label="Menu">Menu</button>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="language.html">Language</a>
+        <a href="stdlib.html">Stdlib</a>
+        <a href="docs/index.html">Docs</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <h1>Language</h1>
+    <p>
+      Comments are <code>//</code> to end of line. Semicolons are required after
+      statements.
+    </p>
+
+    <h2>Keywords</h2>
+    <table>
+      <thead>
+        <tr><th>Keep</th><th>Aliases</th><th>New</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>fn</code> <code>let</code> <code>when</code> <code>loop</code> <code>ret</code> <code>out</code> <code>true</code> <code>false</code></td>
+          <td><code>if</code>=<code>when</code>, <code>while</code>=<code>loop</code>, <code>else</code></td>
+          <td><code>for</code> <code>in</code> <code>nil</code> <code>struct</code> <code>import</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Types</h2>
+    <table>
+      <thead>
+        <tr><th>Type</th><th>Examples</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>nil</td><td><code>nil</code></td></tr>
+        <tr><td>bool</td><td><code>true</code> <code>false</code></td></tr>
+        <tr><td>int</td><td><code>42</code> (int64)</td></tr>
+        <tr><td>float</td><td><code>3.14</code> (double)</td></tr>
+        <tr><td>string</td><td><code>"hello"</code></td></tr>
+        <tr><td>list</td><td><code>[1, 2, 3]</code></td></tr>
+        <tr><td>map</td><td><code>{"a": 1, 2: "x"}</code> (keys: string or int)</td></tr>
+        <tr><td>struct</td><td><code>Point { x: 1, y: 2 }</code></td></tr>
+        <tr><td>function</td><td>first-class via name / qualified import</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Falsey: <code>nil</code>, <code>false</code>, <code>0</code>,
+      <code>0.0</code>, <code>""</code>, <code>[]</code>, <code>{}</code>.
+      Everything else is truthy.
+    </p>
+
+    <h2>Operators</h2>
+    <p>
+      Arithmetic <code>+ - * / %</code> (int/int stays int; mix with float yields
+      float). <code>+</code> also concatenates strings. Comparisons
+      <code>== != &lt; &lt;= &gt; &gt;=</code>, unary <code>- !</code>.
+    </p>
+
+    <h2>Control flow</h2>
+    <pre><code>if (cond) { ... } else { ... }
+when (cond) { ... }
+while (cond) { ... }
+loop (cond) { ... }
+for (let i = 0; i &lt; 10; i = i + 1) { ... }
+for (x in xs) { ... }
+out(expr);
+ret expr;</code></pre>
+
+    <h2>Structs</h2>
+    <pre><code>struct Point { x; y; }
+let p = Point { x: 1, y: 2 };
+out(p.x);
+p.y = 3;</code></pre>
+
+    <h2>Imports</h2>
+    <p>Compile-time linking. No runtime import opcode.</p>
+    <pre><code>import util;
+import "lib/util.my";
+import math;</code></pre>
+    <p>
+      Resolution checks importer dir, <code>lib/</code>, <code>packages/</code>,
+      <code>builtins/</code>, cwd, parent walks for <code>builtins/</code>, then
+      <code>$MYC_HOME/builtins/</code>. Imported fns become <code>module.fn</code>.
+      Circular imports fail at compile time.
+    </p>
+
+    <h2>Example</h2>
+    <pre><code>fn fib(n) {
+  when (n &lt; 2) { ret n; }
+  ret fib(n - 1) + fib(n - 2);
+}
+out(fib(10));</code></pre>
+
+    <p>More detail: <code>docs/language.md</code>.</p>
+  </main>
+  <footer>
+    <div class="inner">myc language documentation</div>
+  </footer>
+  <script src="main.js"></script>
+</body>
+</html>

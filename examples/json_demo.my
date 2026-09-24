@@ -1,0 +1,20 @@
+import json;
+
+let m = {"name": "myc", "n": 42, "ok": true, "tags": ["vm", "c"]};
+let s = json.stringify(m);
+out(s);
+let back = json.parse(s);
+out(back["name"]);
+out(back["n"]);
+out(back["ok"]);
+out(back["tags"][0]);
+
+let arr = json.parse("[1, 2, 3.5, null, false]");
+out(arr[0]);
+out(arr[2]);
+out(arr[3]);
+out(arr[4]);
+
+let esc = json.stringify("a\"b\\c\nd");
+out(esc);
+out(json.parse(esc));

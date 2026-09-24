@@ -1,0 +1,21 @@
+// Process/CLI wrappers around __args, __system, __capture, etc.
+
+fn args() {
+  ret __args();
+}
+
+fn system(cmd) {
+  ret __system(cmd);
+}
+
+fn capture(cmd) {
+  ret __capture(cmd);
+}
+
+fn getenv(name) {
+  ret __getenv(name);
+}
+
+fn cwd() {
+  ret __cwd();
+}

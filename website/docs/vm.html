@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VM - myc</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <header>
+    <div class="inner">
+      <a class="logo" href="../index.html">myc</a>
+      <button type="button" class="nav-toggle" aria-label="Menu">Menu</button>
+      <nav>
+        <a href="../index.html">Home</a>
+        <a href="../language.html">Language</a>
+        <a href="../stdlib.html">Stdlib</a>
+        <a href="index.html">Docs</a>
+      </nav>
+    </div>
+  </header>
+  <main class="doc">
+    <ul class="doc-nav">
+      <li><a href="index.html">All docs</a></li>
+      <li><a href="readme.html">README</a></li>
+      <li><a href="overview.html">Overview</a></li>
+      <li><a href="language.html">Language</a></li>
+      <li><a href="stdlib.html">Stdlib</a></li>
+      <li><a href="errors.html">Errors</a></li>
+      <li><a href="vm.html" class="current">VM</a></li>
+      <li><a href="graphics.html">Graphics</a></li>
+    </ul>
+<h1>VM</h1>
+<h2>Pipeline</h2>
+<pre><code>  .my source
+      |
+      v
+  Lexer -&gt; Parser -&gt; Compiler -&gt; VM -&gt; stdout
+  tokens    AST      bytecode   stack + frames</code></pre>
+<ol>
+<li><strong>Lexer</strong> - tokens from source</li>
+<li><strong>Parser</strong> - AST</li>
+<li><strong>Compiler</strong> - bytecode chunk(s), resolve imports, link functions</li>
+<li><strong>VM</strong> - stack machine with call frames</li>
+</ol>
+<p>Imports resolve and link at compile time (no runtime <code>OP_IMPORT</code>).</p>
+<p>Top-level statements compile into an implicit <code>&lt;main&gt;</code>. Named <code>fn</code>s live in a function table. <code>OP_CLOSURE</code> pushes a callable; <code>OP_CALL</code> builds a call frame or dispatches a C native.</p>
+<p>Values are a tagged union. Heap objects (string, list, map, struct, function) are GC'd.</p>
+<p>Bytecode style is clox-inspired; the C is original and kept small.</p>
+<h2>GC</h2>
+<p>Mark-sweep over heap objects. Chosen over refcount for cycle safety. See <code>src/value.c</code> (<code>gc_collect</code>, mark bit on objects).</p>
+<p>Roots include the VM stack, call frames, and globals held by the VM.</p>
+<h2>Bytecode overview</h2>
+<p>Opcodes (from <code>src/chunk.h</code>):</p>
+<table>
+<thead><tr>
+<th>Opcode</th>
+<th>Role</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>OP_CONSTANT</code> <code>OP_NIL</code> <code>OP_TRUE</code> <code>OP_FALSE</code></td>
+<td>literals</td>
+</tr>
+<tr>
+<td><code>OP_ADD</code> <code>OP_SUB</code> <code>OP_MUL</code> <code>OP_DIV</code> <code>OP_MOD</code></td>
+<td>arithmetic</td>
+</tr>
+<tr>
+<td><code>OP_NEGATE</code> <code>OP_NOT</code></td>
+<td>unary</td>
+</tr>
+<tr>
+<td><code>OP_EQ</code> <code>OP_NE</code> <code>OP_LT</code> <code>OP_LE</code> <code>OP_GT</code> <code>OP_GE</code></td>
+<td>compare</td>
+</tr>
+<tr>
+<td><code>OP_PRINT</code> <code>OP_POP</code></td>
+<td>print / discard</td>
+</tr>
+<tr>
+<td><code>OP_GET_LOCAL</code> <code>OP_SET_LOCAL</code></td>
+<td>locals</td>
+</tr>
+<tr>
+<td><code>OP_JUMP</code> <code>OP_JUMP_IF_FALSE</code> <code>OP_LOOP</code></td>
+<td>control flow</td>
+</tr>
+<tr>
+<td><code>OP_CALL</code> <code>OP_RETURN</code> <code>OP_CLOSURE</code></td>
+<td>calls</td>
+</tr>
+<tr>
+<td><code>OP_BUILD_LIST</code> <code>OP_BUILD_MAP</code> <code>OP_BUILD_STRUCT</code></td>
+<td>aggregates</td>
+</tr>
+<tr>
+<td><code>OP_INDEX_GET</code> <code>OP_INDEX_SET</code></td>
+<td>index</td>
+</tr>
+<tr>
+<td><code>OP_GET_PROP</code> <code>OP_SET_PROP</code></td>
+<td>fields / qualified names</td>
+</tr>
+<tr>
+<td><code>OP_LEN</code> <code>OP_STR</code> <code>OP_TYPE</code></td>
+<td>builtins</td>
+</tr>
+</tbody></table>
+<p>Disassemble with <code>./myc -d file.my</code>.</p>
+<h2>Out of scope</h2>
+<p>Classes/inheritance/methods, closures that capture locals, GC tuning, async/concurrency, a REPL, TLS, HTTP/2, non-blocking sockets.</p>
+
+  </main>
+  <footer>
+    <div class="inner">myc language documentation</div>
+  </footer>
+  <script src="../main.js"></script>
+</body>
+</html>

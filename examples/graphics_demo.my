@@ -1,0 +1,16 @@
+// Manual Mac-only demo: open a window, draw text, block until closed.
+import graphics;
+
+if (!graphics.available()) {
+  out("graphics is only available on macOS");
+  ret;
+}
+
+graphics.open(640, 480, "myc");
+graphics.title("Hello myc");
+graphics.bg(0.95, 0.95, 0.95);
+graphics.color(0.1, 0.1, 0.1);
+graphics.text(24, 40, "Hello from myc");
+graphics.color(0.2, 0.3, 0.7);
+graphics.text(24, 70, "Close the window to exit.");
+graphics.run();

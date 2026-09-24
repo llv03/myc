@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Errors - myc</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <header>
+    <div class="inner">
+      <a class="logo" href="../index.html">myc</a>
+      <button type="button" class="nav-toggle" aria-label="Menu">Menu</button>
+      <nav>
+        <a href="../index.html">Home</a>
+        <a href="../language.html">Language</a>
+        <a href="../stdlib.html">Stdlib</a>
+        <a href="index.html">Docs</a>
+      </nav>
+    </div>
+  </header>
+  <main class="doc">
+    <ul class="doc-nav">
+      <li><a href="index.html">All docs</a></li>
+      <li><a href="readme.html">README</a></li>
+      <li><a href="overview.html">Overview</a></li>
+      <li><a href="language.html">Language</a></li>
+      <li><a href="stdlib.html">Stdlib</a></li>
+      <li><a href="errors.html" class="current">Errors</a></li>
+      <li><a href="vm.html">VM</a></li>
+      <li><a href="graphics.html">Graphics</a></li>
+    </ul>
+<h1>Errors</h1>
+<h2>Exit codes</h2>
+<table>
+<thead><tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>0</code></td>
+<td>Success</td>
+</tr>
+<tr>
+<td><code>65</code></td>
+<td>Parse or compile error</td>
+</tr>
+<tr>
+<td><code>70</code></td>
+<td>Runtime error</td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td>Bad CLI usage (unknown flag, missing file)</td>
+</tr>
+</tbody></table>
+<h2>Format</h2>
+<p>Errors go to stderr.</p>
+<p>Parse/compile:</p>
+<pre><code>myc: path/to/file.my:12:5: error: unexpected token '}' (expected expression)</code></pre>
+<p>Runtime:</p>
+<pre><code>myc: path/to/file.my:3: runtime error: division by zero
+  in &lt;main&gt;()</code></pre>
+<h2>Examples</h2>
+<p>Intentional failures live under <code>examples/errors/</code>:</p>
+<table>
+<thead><tr>
+<th>File</th>
+<th>Kind</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>examples/errors/bad_parse.my</code></td>
+<td>parse error</td>
+</tr>
+<tr>
+<td><code>examples/errors/undef_var.my</code></td>
+<td>compile / name error</td>
+</tr>
+<tr>
+<td><code>examples/errors/div_zero.my</code></td>
+<td>runtime division by zero</td>
+</tr>
+</tbody></table>
+<pre><code class="language-bash">./myc examples/errors/div_zero.my
+echo $?   # 70</code></pre>
+
+  </main>
+  <footer>
+    <div class="inner">myc language documentation</div>
+  </footer>
+  <script src="../main.js"></script>
+</body>
+</html>

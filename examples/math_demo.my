@@ -1,0 +1,14 @@
+import math;
+
+out(math.pi());
+out(math.sqrt(9));
+out(math.sqrt(2));
+out(math.sin(0));
+out(math.cos(0));
+out(math.floor(3.7));
+out(math.ceil(3.2));
+out(math.pow(2, 10));
+out(math.hypot(3, 4));
+out(math.lerp(0, 10, 0.5));
+out(math.abs(0 - 5));
+out(math.clamp(15, 0, 10));

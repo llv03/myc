@@ -1,0 +1,21 @@
+// TCP wrappers around __net_* natives (socket fds as ints).
+
+fn listen(port) {
+  ret __net_listen(port);
+}
+
+fn accept(server) {
+  ret __net_accept(server);
+}
+
+fn recv(conn, n) {
+  ret __net_recv(conn, n);
+}
+
+fn send(conn, s) {
+  ret __net_send(conn, s);
+}
+
+fn close(x) {
+  ret __net_close(x);
+}

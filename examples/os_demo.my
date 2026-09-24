@@ -1,0 +1,17 @@
+import os;
+
+out(os.system("true"));
+out(os.system("false"));
+
+let r = os.capture("echo myc_ok");
+out(r["status"]);
+out(r["out"]);
+
+let e = os.capture("echo err_msg 1>&2");
+out(e["err"]);
+
+let home = os.getenv("HOME");
+out(type(home));
+
+let dir = os.cwd();
+out(type(dir));

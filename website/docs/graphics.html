@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Graphics - myc</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <header>
+    <div class="inner">
+      <a class="logo" href="../index.html">myc</a>
+      <button type="button" class="nav-toggle" aria-label="Menu">Menu</button>
+      <nav>
+        <a href="../index.html">Home</a>
+        <a href="../language.html">Language</a>
+        <a href="../stdlib.html">Stdlib</a>
+        <a href="index.html">Docs</a>
+      </nav>
+    </div>
+  </header>
+  <main class="doc">
+    <ul class="doc-nav">
+      <li><a href="index.html">All docs</a></li>
+      <li><a href="readme.html">README</a></li>
+      <li><a href="overview.html">Overview</a></li>
+      <li><a href="language.html">Language</a></li>
+      <li><a href="stdlib.html">Stdlib</a></li>
+      <li><a href="errors.html">Errors</a></li>
+      <li><a href="vm.html">VM</a></li>
+      <li><a href="graphics.html" class="current">Graphics</a></li>
+    </ul>
+<h1>Graphics (macOS AppKit)</h1>
+<p>Minimal native window: title, background color, draw text, run until closed. Linux and other hosts link a stub: <code>available()</code> is false and other calls report once: <code>graphics is only available on macOS</code>.</p>
+<p>No buttons, images, mouse/keyboard events, or OpenGL.</p>
+<h2>Build</h2>
+<p>On Darwin, <code>make</code> compiles <code>src/native_graphics.m</code> with clang as Objective-C (<code>-fobjc-arc</code>), defines <code>MYC_HAS_GRAPHICS=1</code>, and links <code>-framework AppKit -framework Foundation</code>. Elsewhere only <code>src/native_graphics_stub.c</code> is built.</p>
+<h2>API</h2>
+<pre><code>import graphics;
+if (graphics.available()) {
+  graphics.open(640, 480, "myc");
+  graphics.title("Hello");
+  graphics.bg(0.95, 0.95, 0.95);
+  graphics.color(0.1, 0.1, 0.1);
+  graphics.text(24, 40, "Hello from myc");
+  graphics.run();
+}</code></pre>
+<table>
+<thead><tr>
+<th>Function</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>available()</code></td>
+<td><code>true</code> on macOS with AppKit linked; else <code>false</code></td>
+</tr>
+<tr>
+<td><code>open(w, h, title)</code></td>
+<td>create <code>NSWindow</code> + content view; bool</td>
+</tr>
+<tr>
+<td><code>title(s)</code></td>
+<td>set window title; bool</td>
+</tr>
+<tr>
+<td><code>bg(r, g, b)</code></td>
+<td>fill color floats 0..1; bool</td>
+</tr>
+<tr>
+<td><code>color(r, g, b)</code></td>
+<td>current text color floats 0..1; bool</td>
+</tr>
+<tr>
+<td><code>text(x, y, s)</code></td>
+<td>queue string at top-left <code>(x,y)</code>; bool</td>
+</tr>
+<tr>
+<td><code>run()</code></td>
+<td><code>[NSApp run]</code> until title-bar close; blocking</td>
+</tr>
+</tbody></table>
+<p>Wrappers in <code>builtins/graphics.my</code> call <code>__gfx_*</code> natives.</p>
+<p>Colors are floats in <code>0..1</code>. Text <code>(x, y)</code> uses <strong>top-left</strong> origin of the content area (converted internally from AppKit coordinates).</p>
+<h2>Demo</h2>
+<p>Manual, Mac only. Do not call <code>run()</code> from <code>make test</code>.</p>
+<pre><code class="language-bash">make
+./myc examples/graphics_demo.my</code></pre>
+<p><code>examples/graphics_avail.my</code> prints <code>graphics.available()</code> (false on non-Mac).</p>
+
+  </main>
+  <footer>
+    <div class="inner">myc language documentation</div>
+  </footer>
+  <script src="../main.js"></script>
+</body>
+</html>

@@ -1,0 +1,2 @@
+// Intentional runtime error: division by zero
+out(1 / 0);

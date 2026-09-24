@@ -1,0 +1,29 @@
+// Mac-only AppKit window helpers around __gfx_* natives (stub elsewhere).
+
+fn available() {
+  ret __gfx_available();
+}
+
+fn open(width, height, title) {
+  ret __gfx_open(width, height, title);
+}
+
+fn title(t) {
+  ret __gfx_title(t);
+}
+
+fn bg(r, g, b) {
+  ret __gfx_bg(r, g, b);
+}
+
+fn color(r, g, b) {
+  ret __gfx_color(r, g, b);
+}
+
+fn text(x, y, s) {
+  ret __gfx_text(x, y, s);
+}
+
+fn run() {
+  ret __gfx_run();
+}

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Language - myc</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <header>
+    <div class="inner">
+      <a class="logo" href="../index.html">myc</a>
+      <button type="button" class="nav-toggle" aria-label="Menu">Menu</button>
+      <nav>
+        <a href="../index.html">Home</a>
+        <a href="../language.html">Language</a>
+        <a href="../stdlib.html">Stdlib</a>
+        <a href="index.html">Docs</a>
+      </nav>
+    </div>
+  </header>
+  <main class="doc">
+    <ul class="doc-nav">
+      <li><a href="index.html">All docs</a></li>
+      <li><a href="readme.html">README</a></li>
+      <li><a href="overview.html">Overview</a></li>
+      <li><a href="language.html" class="current">Language</a></li>
+      <li><a href="stdlib.html">Stdlib</a></li>
+      <li><a href="errors.html">Errors</a></li>
+      <li><a href="vm.html">VM</a></li>
+      <li><a href="graphics.html">Graphics</a></li>
+    </ul>
+<h1>Language</h1>
+<p>Source files use the <code>.my</code> extension. Comments are <code>//</code> to end of line. Semicolons are required after statements.</p>
+<h2>Grammar sketch</h2>
+<pre><code>program     := decl*
+decl        := import_decl | struct_decl | fn_decl | let_decl | stmt
+import_decl := "import" (IDENT | STRING) ";"
+struct_decl := "struct" IDENT "{" (IDENT [";"|","])* "}" [";"]
+fn_decl     := "fn" IDENT "(" params? ")" block
+let_decl    := "let" IDENT ("=" expr)? ";"
+stmt        := out_stmt | ret_stmt | if_stmt | while_stmt | for_stmt
+             | block | expr ";"
+if_stmt     := ("if"|"when") "(" expr ")" stmt ("else" stmt)?
+while_stmt  := ("while"|"loop") "(" expr ")" stmt
+for_stmt    := "for" "(" let_decl_or_expr? ";" expr? ";" expr? ")" stmt
+             | "for" "(" IDENT "in" expr ")" stmt
+out_stmt    := "out" expr ";"
+ret_stmt    := "ret" expr? ";"
+block       := "{" decl* "}"
+
+expr        := assign
+assign      := equality ("=" assign)?
+call        := primary ( "(" args? ")" | "[" expr "]" | "." IDENT )*
+primary     := NUMBER | STRING | "true" | "false" | "nil" | IDENT
+             | IDENT "{" fields "}"
+             | "[" exprs "]"
+             | "{" (expr ":" expr)* "}"
+             | "(" expr ")"</code></pre>
+<p>Assignment also covers index and property targets (<code>a[i] = x</code>, <code>p.x = 1</code>).</p>
+<h2>Keywords</h2>
+<table>
+<thead><tr>
+<th>Keep</th>
+<th>C-like aliases</th>
+<th>New</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>fn</code> <code>let</code> <code>when</code> <code>loop</code> <code>ret</code> <code>out</code> <code>true</code> <code>false</code></td>
+<td><code>if</code>=<code>when</code>, <code>while</code>=<code>loop</code>, <code>else</code></td>
+<td><code>for</code> <code>in</code> <code>nil</code> <code>struct</code> <code>import</code></td>
+</tr>
+</tbody></table>
+<h2>Types and truthiness</h2>
+<table>
+<thead><tr>
+<th>Type</th>
+<th>Examples</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>nil</td>
+<td><code>nil</code></td>
+</tr>
+<tr>
+<td>bool</td>
+<td><code>true</code> <code>false</code></td>
+</tr>
+<tr>
+<td>int</td>
+<td><code>42</code> (int64)</td>
+</tr>
+<tr>
+<td>float</td>
+<td><code>3.14</code> (double)</td>
+</tr>
+<tr>
+<td>string</td>
+<td><code>"hello"</code> (heap)</td>
+</tr>
+<tr>
+<td>list</td>
+<td><code>[1, 2, 3]</code></td>
+</tr>
+<tr>
+<td>map</td>
+<td><code>{"a": 1, 2: "x"}</code> (keys: string or int)</td>
+</tr>
+<tr>
+<td>struct</td>
+<td><code>Point { x: 1, y: 2 }</code></td>
+</tr>
+<tr>
+<td>function</td>
+<td>first-class via name / qualified import</td>
+</tr>
+</tbody></table>
+<p>Truthiness: <code>nil</code>, <code>false</code>, <code>0</code>, <code>0.0</code>, <code>""</code>, <code>[]</code>, and <code>{}</code> are falsey; everything else is truthy.</p>
+<p>Lists grow with append-by-index: <code>a[len(a)] = x</code>.</p>
+<h2>Operators</h2>
+<table>
+<thead><tr>
+<th>Kind</th>
+<th>Ops</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Arithmetic</td>
+<td><code>+ - * / %</code></td>
+</tr>
+<tr>
+<td>Comparison</td>
+<td><code>== != &lt; &lt;= &gt; &gt;=</code></td>
+</tr>
+<tr>
+<td>Unary</td>
+<td><code>- !</code></td>
+</tr>
+</tbody></table>
+<p><code>int</code>/<code>int</code> arithmetic stays int. Mixing with float yields float. <code>+</code> also concatenates strings (the other operand is stringified).</p>
+<h2>Control flow</h2>
+<pre><code>if (cond) { ... } else { ... }
+when (cond) { ... }
+
+while (cond) { ... }
+loop (cond) { ... }
+
+for (let i = 0; i &lt; 10; i = i + 1) { ... }
+for (x in xs) { ... }</code></pre>
+<p><code>out expr;</code> prints. <code>ret expr;</code> or <code>ret;</code> returns from a function.</p>
+<h2>Structs</h2>
+<pre><code>struct Point {
+  x;
+  y;
+}
+
+let p = Point { x: 1, y: 2 };
+out(p.x);
+p.y = 3;</code></pre>
+<p>Field list items may be separated by <code>;</code> or <code>,</code>.</p>
+<h2>Imports (compile-time linking)</h2>
+<pre><code>import util;           // -&gt; util.double, util.greet
+import "lib/util.my";  // prefix = basename without .my
+import math;           // -&gt; math.sqrt from builtins/math.my</code></pre>
+<p>Resolution order (first hit wins):</p>
+<ol>
+<li><code>&lt;importer_dir&gt;/&lt;name&gt;.my</code></li>
+<li><code>&lt;importer_dir&gt;/lib/&lt;name&gt;.my</code></li>
+<li><code>&lt;importer_dir&gt;/packages/&lt;name&gt;.my</code></li>
+<li><code>&lt;importer_dir&gt;/packages/&lt;name&gt;/&lt;name&gt;.my</code></li>
+<li><code>&lt;importer_dir&gt;/builtins/&lt;name&gt;.my</code></li>
+<li>Same patterns from the process cwd (<code>./</code>, <code>lib/</code>, <code>packages/</code>, <code>builtins/</code>)</li>
+<li>Walk up from the importer directory looking for <code>builtins/&lt;name&gt;.my</code></li>
+<li>Walk up from the entry <code>.my</code> file directory looking for <code>builtins/&lt;name&gt;.my</code></li>
+<li><code>$MYC_HOME/builtins/&lt;name&gt;.my</code> if <code>MYC_HOME</code> is set</li>
+</ol>
+<p>String imports (<code>import "path.my"</code>) resolve relative to the importer (or absolute).</p>
+<p>Imported top-level <code>fn</code>s become <code>module.fn</code>. Structs merge into the global struct table by name. Top-level statements in imported files are not executed. Circular imports fail at compile time. There is no runtime <code>OP_IMPORT</code>.</p>
+<h2>Example</h2>
+<pre><code>fn fib(n) {
+  when (n &lt; 2) { ret n; }
+  ret fib(n - 1) + fib(n - 2);
+}
+
+out(fib(10));</code></pre>
+
+  </main>
+  <footer>
+    <div class="inner">myc language documentation</div>
+  </footer>
+  <script src="../main.js"></script>
+</body>
+</html>

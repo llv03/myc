@@ -1,0 +1,19 @@
+import csv;
+import fs;
+
+let text = "name,age\nAda,36\n\"Bo \"\"Bob\"\"\",22\n";
+let rows = csv.parse(text);
+out(rows[0][0]);
+out(rows[1][0]);
+out(rows[1][1]);
+out(rows[2][0]);
+
+let maps = csv.parse_maps(text);
+out(maps[0]["name"]);
+out(maps[0]["age"]);
+
+let path = "examples/.tmp/csv_demo.csv";
+out(csv.write(path, [["a", "b"], ["1", "2,3"]]));
+let again = csv.read(path);
+out(again[1][1]);
+out(fs.remove(path));

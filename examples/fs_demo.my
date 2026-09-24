@@ -1,0 +1,10 @@
+import fs;
+
+let path = "examples/.tmp/fs_demo.txt";
+out(fs.write(path, "hello"));
+out(fs.exists(path));
+out(fs.read(path));
+out(fs.append(path, "\nmore"));
+out(fs.read(path));
+out(fs.remove(path));
+out(fs.exists(path));

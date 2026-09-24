@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stdlib - myc</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <header>
+    <div class="inner">
+      <a class="logo" href="../index.html">myc</a>
+      <button type="button" class="nav-toggle" aria-label="Menu">Menu</button>
+      <nav>
+        <a href="../index.html">Home</a>
+        <a href="../language.html">Language</a>
+        <a href="../stdlib.html">Stdlib</a>
+        <a href="index.html">Docs</a>
+      </nav>
+    </div>
+  </header>
+  <main class="doc">
+    <ul class="doc-nav">
+      <li><a href="index.html">All docs</a></li>
+      <li><a href="readme.html">README</a></li>
+      <li><a href="overview.html">Overview</a></li>
+      <li><a href="language.html">Language</a></li>
+      <li><a href="stdlib.html" class="current">Stdlib</a></li>
+      <li><a href="errors.html">Errors</a></li>
+      <li><a href="vm.html">VM</a></li>
+      <li><a href="graphics.html">Graphics</a></li>
+    </ul>
+<h1>Stdlib</h1>
+<h2>VM builtins</h2>
+<p>Always available (no import):</p>
+<table>
+<thead><tr>
+<th>Builtin</th>
+<th>Meaning</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>out(x)</code></td>
+<td>print any value (also statement form <code>out expr;</code>)</td>
+</tr>
+<tr>
+<td><code>len(x)</code></td>
+<td>length of string / list / map</td>
+</tr>
+<tr>
+<td><code>str(x)</code></td>
+<td>convert to string</td>
+</tr>
+<tr>
+<td><code>type(x)</code></td>
+<td>type name as string (<code>"int"</code>, <code>"list"</code>, ...)</td>
+</tr>
+</tbody></table>
+<p>Also registered for packages: <code>__map_keys(m)</code> -&gt; list of keys.</p>
+<h2>Packages overview</h2>
+<table>
+<thead><tr>
+<th>Package</th>
+<th>Kind</th>
+<th>Role</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>builtins/math.my</code></td>
+<td>pure myc</td>
+<td><code>math.sqrt</code>, <code>math.sin</code>, ...</td>
+</tr>
+<tr>
+<td><code>builtins/net.my</code></td>
+<td>myc wrappers</td>
+<td>TCP around C <code>__net_*</code> natives</td>
+</tr>
+<tr>
+<td><code>builtins/http.my</code></td>
+<td>pure myc + net</td>
+<td>HTTP/1.1 parse / respond / serve</td>
+</tr>
+<tr>
+<td><code>builtins/fs.my</code></td>
+<td>myc wrappers</td>
+<td>text files around C <code>__fs_*</code> natives</td>
+</tr>
+<tr>
+<td><code>builtins/os.my</code></td>
+<td>myc wrappers</td>
+<td>argv, shell cmds, getenv/cwd</td>
+</tr>
+<tr>
+<td><code>builtins/json.my</code></td>
+<td>pure myc</td>
+<td><code>json.parse</code> / <code>json.stringify</code></td>
+</tr>
+<tr>
+<td><code>builtins/csv.my</code></td>
+<td>pure myc + fs</td>
+<td>CSV parse/stringify + <code>read</code>/<code>write</code></td>
+</tr>
+<tr>
+<td><code>builtins/graphics.my</code></td>
+<td>myc wrappers</td>
+<td>Mac AppKit window (stub elsewhere)</td>
+</tr>
+</tbody></table>
+<p>Import by name: <code>import math;</code> then call <code>math.sqrt(9)</code>.</p>
+<h2>math</h2>
+<pre><code>import math;
+out(math.sqrt(9));
+out(math.sin(0));
+out(math.pi());</code></pre>
+<table>
+<thead><tr>
+<th>Function</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>pi()</code> / <code>e()</code></td>
+<td>constants as zero-arg fns</td>
+</tr>
+<tr>
+<td><code>abs</code> <code>min</code> <code>max</code> <code>clamp</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>floor</code> <code>ceil</code> <code>round</code></td>
+<td>via float <code>%</code></td>
+</tr>
+<tr>
+<td><code>pow(base, exp)</code></td>
+<td>integer exponent (neg -&gt; reciprocal)</td>
+</tr>
+<tr>
+<td><code>sqrt(x)</code></td>
+<td>Newton; <code>x &lt; 0</code> -&gt; <code>nil</code></td>
+</tr>
+<tr>
+<td><code>sin</code> <code>cos</code> <code>tan</code></td>
+<td>Taylor + range-reduce</td>
+</tr>
+<tr>
+<td><code>hypot(a,b)</code> <code>lerp(a,b,t)</code></td>
+<td></td>
+</tr>
+</tbody></table>
+<h2>Native filesystem (<code>__fs_*</code>)</h2>
+<table>
+<thead><tr>
+<th>Native</th>
+<th>Meaning</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>__fs_read(path)</code></td>
+<td>whole file -&gt; string, or <code>nil</code> (cap 8 MiB)</td>
+</tr>
+<tr>
+<td><code>__fs_write(path, contents)</code></td>
+<td>create/overwrite -&gt; <code>true</code>/<code>false</code></td>
+</tr>
+<tr>
+<td><code>__fs_append(path, contents)</code></td>
+<td>append -&gt; <code>true</code>/<code>false</code></td>
+</tr>
+<tr>
+<td><code>__fs_exists(path)</code></td>
+<td>-&gt; bool</td>
+</tr>
+<tr>
+<td><code>__fs_remove(path)</code></td>
+<td>unlink -&gt; bool</td>
+</tr>
+</tbody></table>
+<p>Paths are relative to the process cwd (or absolute). Running <code>./myc script.my</code> from another directory changes where relative paths resolve (not the script folder). See <code>src/native_fs.c</code>.</p>
+<h3>fs wrappers</h3>
+<pre><code>import fs;
+fs.write("notes.txt", "hello");
+fs.append("notes.txt", "\nmore");
+out(fs.read("notes.txt"));
+out(fs.exists("notes.txt"));
+fs.remove("notes.txt");</code></pre>
+<table>
+<thead><tr>
+<th>Function</th>
+<th>Maps to</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>fs.read</code> <code>fs.write</code> <code>fs.append</code> <code>fs.exists</code> <code>fs.remove</code></td>
+<td><code>__fs_*</code></td>
+</tr>
+</tbody></table>
+<h2>Native process / CLI</h2>
+<table>
+<thead><tr>
+<th>Native</th>
+<th>Meaning</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>__args()</code></td>
+<td>list of strings: <code>[0]</code> = script path, then user args</td>
+</tr>
+<tr>
+<td><code>__system(cmd)</code></td>
+<td>run via shell (<code>system()</code>); exit status int; -1 if launch fails</td>
+</tr>
+<tr>
+<td><code>__capture(cmd)</code></td>
+<td>map <code>{"status","out","err"}</code>, or <code>nil</code> on launch failure</td>
+</tr>
+<tr>
+<td><code>__getenv(name)</code></td>
+<td>string or <code>nil</code></td>
+</tr>
+<tr>
+<td><code>__cwd()</code></td>
+<td>cwd string, or <code>nil</code></td>
+</tr>
+</tbody></table>
+<p>Myc flags (e.g. <code>-d</code>) are stripped before building the args list:</p>
+<pre><code class="language-bash">./myc -d examples/args_demo.my foo bar
+# os.args() -&gt; ["examples/args_demo.my", "foo", "bar"]</code></pre>
+<p><code>__system</code> / <code>__capture</code> use <code>/bin/sh -c</code> (or <code>system()</code>). Untrusted strings with shell metacharacters are an injection hazard; only pass trusted command strings. Capture uses <code>fork</code> + pipes; stdout -&gt; <code>"out"</code>, stderr -&gt; <code>"err"</code> (cap 8 MiB each). See <code>src/native_os.c</code>.</p>
+<h3>os wrappers</h3>
+<pre><code>import os;
+out(os.args());
+out(os.system("true"));
+let r = os.capture("echo hi");
+out(r["out"]);
+out(r["status"]);
+out(os.getenv("HOME"));
+out(os.cwd());</code></pre>
+<h2>Native C sockets (<code>__net_*</code>)</h2>
+<table>
+<thead><tr>
+<th>Native</th>
+<th>Meaning</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>__net_listen(port)</code></td>
+<td>bind <code>0.0.0.0:port</code>, listen -&gt; fd int or <code>nil</code></td>
+</tr>
+<tr>
+<td><code>__net_accept(server)</code></td>
+<td>blocking accept -&gt; conn fd or <code>nil</code></td>
+</tr>
+<tr>
+<td><code>__net_recv(conn, n)</code></td>
+<td>up to <code>n</code> bytes -&gt; string (may be partial/<code>""</code>)</td>
+</tr>
+<tr>
+<td><code>__net_send(conn, s)</code></td>
+<td>send string -&gt; bytes sent (int) or <code>nil</code></td>
+</tr>
+<tr>
+<td><code>__net_close(id)</code></td>
+<td>close fd -&gt; <code>true</code> or <code>nil</code></td>
+</tr>
+</tbody></table>
+<p>IDs are raw POSIX socket file descriptors (<code>src/native_net.c</code>). Blocking I/O.</p>
+<h3>net wrappers</h3>
+<pre><code>import net;
+let s = net.listen(8080);
+let c = net.accept(s);
+let raw = net.recv(c, 4096);
+net.send(c, "hi");
+net.close(c);
+net.close(s);</code></pre>
+<h2>http</h2>
+<p>Pure myc on top of <code>net</code>. HTTP/1.1 only.</p>
+<pre><code>import http;
+
+http.mk_response(200, "text/plain", "hi");
+http.text(200, "ok");
+http.html(200, "&lt;h1&gt;hi&lt;/h1&gt;");
+http.json(200, "{\"ok\":true}");
+
+let req = http.parse_request(raw);  // map: method, path, body, raw
+
+fn handler(req) {
+  ret http.html(200, "&lt;h1&gt;Hello from myc&lt;/h1&gt;");
+}
+http.serve(8765, handler);
+
+http.serve_routes(8765, {"/": "&lt;h1&gt;hi&lt;/h1&gt;"});
+http.serve_text(8765, "&lt;h1&gt;hi&lt;/h1&gt;");</code></pre>
+<table>
+<thead><tr>
+<th>Function</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>mk_response(status, content_type, body)</code></td>
+<td>raw HTTP/1.1 response string</td>
+</tr>
+<tr>
+<td><code>text</code> <code>html</code> <code>json</code></td>
+<td>convenience content types</td>
+</tr>
+<tr>
+<td><code>parse_request(raw)</code></td>
+<td>map with <code>method</code>, <code>path</code>, <code>body</code>, <code>raw</code></td>
+</tr>
+<tr>
+<td><code>serve(port, handler)</code></td>
+<td>handler is a function value</td>
+</tr>
+<tr>
+<td><code>serve_routes(port, map)</code></td>
+<td>path -&gt; HTML/body string</td>
+</tr>
+<tr>
+<td><code>serve_text(port, body)</code></td>
+<td>single response for any path</td>
+</tr>
+</tbody></table>
+<p>Manual demo:</p>
+<pre><code class="language-bash">./myc examples/http_demo.my
+curl http://127.0.0.1:8765/</code></pre>
+<p><code>make test</code> does not start a live server; it checks builders/parsers via <code>examples/http_parse_test.my</code>.</p>
+<h2>json</h2>
+<p>Practical subset (not full RFC JSON). Pure myc.</p>
+<pre><code>import json;
+let s = json.stringify({"a": 1, "tags": ["x", "y"]});
+let v = json.parse(s);
+out(v["a"]);</code></pre>
+<table>
+<thead><tr>
+<th>Function</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>stringify(v)</code></td>
+<td>nil/bool/int/float/string/list/map; escapes <code>\\ " \n \t \r</code>; int map keys stringified; function/struct -&gt; <code>nil</code></td>
+</tr>
+<tr>
+<td><code>parse(text)</code></td>
+<td>objects-&gt;maps, arrays-&gt;lists, whole numbers-&gt;int else float, <code>null</code>-&gt;nil; fails -&gt; <code>nil</code>. No <code>1e3</code> exponents.</td>
+</tr>
+</tbody></table>
+<h2>csv</h2>
+<p>RFC4180-ish: commas, quoted fields, <code>""</code> escapes. Pure myc + <code>fs</code>.</p>
+<pre><code>import csv;
+let rows = csv.parse("a,b\n1,\"2,3\"\n");
+let maps = csv.parse_maps("name,age\nAda,36\n");
+out(csv.stringify([["a","b"],["1","2"]]));
+csv.write("out.csv", rows);
+let again = csv.read("out.csv");</code></pre>
+<table>
+<thead><tr>
+<th>Function</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>parse(text)</code></td>
+<td>list of rows (each a list of string fields)</td>
+</tr>
+<tr>
+<td><code>parse_maps(text)</code></td>
+<td>first row = headers -&gt; list of maps</td>
+</tr>
+<tr>
+<td><code>stringify(rows)</code></td>
+<td>CSV text</td>
+</tr>
+<tr>
+<td><code>read(path)</code> / <code>write(path, rows)</code></td>
+<td>via <code>fs</code></td>
+</tr>
+</tbody></table>
+<h2>graphics</h2>
+<p>See <a href="graphics.html">graphics.md</a>. Short API:</p>
+<table>
+<thead><tr>
+<th>Function</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>available()</code></td>
+<td><code>true</code> on macOS with AppKit; else <code>false</code></td>
+</tr>
+<tr>
+<td><code>open(w, h, title)</code></td>
+<td>create window; bool</td>
+</tr>
+<tr>
+<td><code>title(s)</code> <code>bg(r,g,b)</code> <code>color(r,g,b)</code> <code>text(x,y,s)</code></td>
+<td>setup / draw</td>
+</tr>
+<tr>
+<td><code>run()</code></td>
+<td>block until window closed</td>
+</tr>
+</tbody></table>
+<p>Colors are floats in <code>0..1</code>. Text <code>(x, y)</code> uses top-left origin.</p>
+
+  </main>
+  <footer>
+    <div class="inner">myc language documentation</div>
+  </footer>
+  <script src="../main.js"></script>
+</body>
+</html>

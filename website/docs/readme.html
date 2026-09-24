@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Project README - myc</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <header>
+    <div class="inner">
+      <a class="logo" href="../index.html">myc</a>
+      <button type="button" class="nav-toggle" aria-label="Menu">Menu</button>
+      <nav>
+        <a href="../index.html">Home</a>
+        <a href="../language.html">Language</a>
+        <a href="../stdlib.html">Stdlib</a>
+        <a href="index.html">Docs</a>
+      </nav>
+    </div>
+  </header>
+  <main class="doc">
+    <ul class="doc-nav">
+      <li><a href="index.html">All docs</a></li>
+      <li><a href="readme.html" class="current">README</a></li>
+      <li><a href="overview.html">Overview</a></li>
+      <li><a href="language.html">Language</a></li>
+      <li><a href="stdlib.html">Stdlib</a></li>
+      <li><a href="errors.html">Errors</a></li>
+      <li><a href="vm.html">VM</a></li>
+      <li><a href="graphics.html">Graphics</a></li>
+    </ul>
+<h1>myc</h1>
+<p>Small C11 language with a stack-based bytecode VM. Source files use the <code>.my</code> extension. Pipeline: lex, parse (AST), compile (bytecode), run (call-frame VM). Values: nil, bool, int, float, string, list, map, struct, function. Control flow includes <code>if</code>/<code>while</code>/<code>for</code> (aliases <code>when</code>/<code>loop</code>), compile-time imports, and a <code>builtins/</code> stdlib (math, net/http, fs, os, json, csv, graphics).</p>
+<h2>Requirements</h2>
+<ul>
+<li>C11 compiler (<code>cc</code>)</li>
+<li>POSIX (sockets, <code>fork</code>/<code>pipe</code> for <code>os.capture</code>)</li>
+<li>macOS AppKit only for the graphics package (stub elsewhere)</li>
+</ul>
+<h2>Build</h2>
+<pre><code class="language-bash">make</code></pre>
+<p>On Darwin, <code>make</code> also builds Objective-C graphics and links AppKit. Elsewhere the graphics stub is used.</p>
+<h2>Run</h2>
+<pre><code class="language-bash">./myc examples/fib.my
+./myc examples/args_demo.my foo bar
+./myc -d examples/hello.my</code></pre>
+<p><code>-d</code> disassembles bytecode, then runs. Extra args after the script path are available via <code>os.args()</code> / <code>__args()</code>.</p>
+<p>Exit codes: <code>0</code> ok, <code>65</code> parse/compile error, <code>70</code> runtime error.</p>
+<h2>Tests</h2>
+<pre><code class="language-bash">make test</code></pre>
+<h2>Documentation</h2>
+<ul>
+<li>Language, stdlib, VM, errors, graphics: <a href="docs/"><code>docs/</code></a></li>
+<li>Static site (HTML): <a href="website/"><code>website/</code></a> - open <code>website/index.html</code> in a browser, or <code>cd website &amp;&amp; python3 -m http.server</code></li>
+<li>Rendered docs: <a href="website/docs/"><code>website/docs/</code></a> (README, overview, language, stdlib, errors, VM, graphics)</li>
+</ul>
+<h2>Layout</h2>
+<pre><code>myc/
+  src/           C11 VM, lexer, parser, compiler, natives
+  builtins/      stdlib packages (.my)
+  examples/      sample programs
+  tests/         test runner
+  docs/          markdown documentation
+  website/       static HTML docs
+  Makefile
+  README.md</code></pre>
+<h2>License</h2>
+<p>No license file yet.</p>
+
+  </main>
+  <footer>
+    <div class="inner">myc language documentation</div>
+  </footer>
+  <script src="../main.js"></script>
+</body>
+</html>

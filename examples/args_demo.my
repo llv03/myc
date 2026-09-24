@@ -1,0 +1,7 @@
+import os;
+
+let a = os.args();
+out(len(a));
+for (let i = 0; i < len(a); i = i + 1) {
+  out(a[i]);
+}

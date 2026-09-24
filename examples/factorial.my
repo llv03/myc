@@ -1,0 +1,7 @@
+fn fact(n) {
+  when (n <= 1) {
+    ret 1;
+  }
+  ret n * fact(n - 1);
+}
+out(fact(6));

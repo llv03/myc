@@ -1,0 +1,4 @@
+import util;
+
+out(util.double(21));
+out(util.greet("myc"));

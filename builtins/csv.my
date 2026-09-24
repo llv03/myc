@@ -1,0 +1,226 @@
+// CSV parse/stringify helpers; read/write via fs.
+import fs;
+
+fn substr(s, start, end) {
+  let r = "";
+  let i = start;
+  let n = len(s);
+  while (i < end) {
+    if (i >= n) { ret r; }
+    if (i < 0) { ret r; }
+    r = r + s[i];
+    i = i + 1;
+  }
+  ret r;
+}
+
+// Parse one CSV field starting at i. Returns {"v": field, "i": next, "end": bool}
+// where end means row ended (newline or EOF). next points past comma / newline.
+fn parse_field(s, i) {
+  let n = len(s);
+  if (i >= n) {
+    ret {"v": "", "i": i, "end": true};
+  }
+  // quoted field
+  if (s[i] == "\"") {
+    i = i + 1;
+    let acc = "";
+    let cont = true;
+    while (cont) {
+      if (i >= n) {
+        ret {"v": acc, "i": i, "end": true};
+      }
+      let c = s[i];
+      if (c == "\"") {
+        if (i + 1 < n) {
+          if (s[i + 1] == "\"") {
+            acc = acc + "\"";
+            i = i + 2;
+          } else {
+            i = i + 1;
+            // after closing quote: comma, newline, or EOF
+            if (i >= n) {
+              ret {"v": acc, "i": i, "end": true};
+            }
+            if (s[i] == ",") {
+              ret {"v": acc, "i": i + 1, "end": false};
+            }
+            if (s[i] == "\r") {
+              i = i + 1;
+              if (i < n) {
+                if (s[i] == "\n") { i = i + 1; }
+              }
+              ret {"v": acc, "i": i, "end": true};
+            }
+            if (s[i] == "\n") {
+              ret {"v": acc, "i": i + 1, "end": true};
+            }
+            ret {"v": acc, "i": i, "end": true};
+          }
+        } else {
+          ret {"v": acc, "i": i + 1, "end": true};
+        }
+      } else {
+        acc = acc + c;
+        i = i + 1;
+      }
+    }
+  }
+
+  // unquoted field
+  let start = i;
+  let cont2 = true;
+  while (cont2) {
+    if (i >= n) {
+      ret {"v": substr(s, start, i), "i": i, "end": true};
+    }
+    let c = s[i];
+    if (c == ",") {
+      ret {"v": substr(s, start, i), "i": i + 1, "end": false};
+    }
+    if (c == "\n") {
+      ret {"v": substr(s, start, i), "i": i + 1, "end": true};
+    }
+    if (c == "\r") {
+      let field = substr(s, start, i);
+      i = i + 1;
+      if (i < n) {
+        if (s[i] == "\n") { i = i + 1; }
+      }
+      ret {"v": field, "i": i, "end": true};
+    }
+    i = i + 1;
+  }
+  ret {"v": "", "i": i, "end": true};
+}
+
+fn parse_row(s, i) {
+  let n = len(s);
+  if (i >= n) { ret nil; }
+  // skip blank trailing
+  let row = [];
+  let cont = true;
+  while (cont) {
+    let f = parse_field(s, i);
+    row[len(row)] = f["v"];
+    i = f["i"];
+    if (f["end"]) {
+      cont = false;
+    }
+  }
+  ret {"v": row, "i": i};
+}
+
+fn parse(text) {
+  if (text == nil) { ret []; }
+  if (type(text) != "string") { ret []; }
+  if (len(text) == 0) { ret []; }
+  let rows = [];
+  let i = 0;
+  let n = len(text);
+  while (i < n) {
+    let r = parse_row(text, i);
+    if (r == nil) { ret rows; }
+    rows[len(rows)] = r["v"];
+    i = r["i"];
+  }
+  // Drop a single trailing empty row caused by final newline
+  if (len(rows) > 0) {
+    let last = rows[len(rows) - 1];
+    if (len(last) == 1) {
+      if (last[0] == "") {
+        // rebuild without last (no pop); copy
+        let kept = [];
+        let j = 0;
+        while (j < len(rows) - 1) {
+          kept[len(kept)] = rows[j];
+          j = j + 1;
+        }
+        ret kept;
+      }
+    }
+  }
+  ret rows;
+}
+
+fn parse_maps(text) {
+  let rows = parse(text);
+  if (len(rows) == 0) { ret []; }
+  let headers = rows[0];
+  let acc = [];
+  let i = 1;
+  while (i < len(rows)) {
+    let row = rows[i];
+    let m = {};
+    let j = 0;
+    while (j < len(headers)) {
+      let key = headers[j];
+      let val = "";
+      if (j < len(row)) { val = row[j]; }
+      m[key] = val;
+      j = j + 1;
+    }
+    acc[len(acc)] = m;
+    i = i + 1;
+  }
+  ret acc;
+}
+
+fn escape_field(s) {
+  if (s == nil) { s = ""; }
+  s = str(s);
+  let need = false;
+  let i = 0;
+  let n = len(s);
+  while (i < n) {
+    let c = s[i];
+    if (c == ",") { need = true; }
+    if (c == "\"") { need = true; }
+    if (c == "\n") { need = true; }
+    if (c == "\r") { need = true; }
+    i = i + 1;
+  }
+  if (!need) { ret s; }
+  let r = "\"";
+  i = 0;
+  while (i < n) {
+    let c = s[i];
+    if (c == "\"") {
+      r = r + "\"\"";
+    } else {
+      r = r + c;
+    }
+    i = i + 1;
+  }
+  ret r + "\"";
+}
+
+fn stringify(rows) {
+  if (rows == nil) { ret ""; }
+  let acc = "";
+  let i = 0;
+  let n = len(rows);
+  while (i < n) {
+    let row = rows[i];
+    let j = 0;
+    let rn = len(row);
+    while (j < rn) {
+      if (j > 0) { acc = acc + ","; }
+      acc = acc + escape_field(row[j]);
+      j = j + 1;
+    }
+    acc = acc + "\n";
+    i = i + 1;
+  }
+  ret acc;
+}
+
+fn read(path) {
+  let text = fs.read(path);
+  if (text == nil) { ret nil; }
+  ret parse(text);
+}
+
+fn write(path, rows) {
+  ret fs.write(path, stringify(rows));
+}

@@ -1,0 +1,141 @@
+// Math helpers (Newton/Taylor). import math;
+
+fn pi() {
+  ret 3.141592653589793;
+}
+
+fn e() {
+  ret 2.718281828459045;
+}
+
+fn abs(x) {
+  if (x < 0) { ret 0 - x; }
+  ret x;
+}
+
+fn min(a, b) {
+  if (a < b) { ret a; }
+  ret b;
+}
+
+fn max(a, b) {
+  if (a > b) { ret a; }
+  ret b;
+}
+
+fn clamp(x, lo, hi) {
+  ret min(max(x, lo), hi);
+}
+
+// Truncate toward -∞ using float remainder (works for int and float).
+fn floor(x) {
+  let t = x - (x % 1);
+  if (x >= 0) { ret t; }
+  if (t == x) { ret t; }
+  ret t - 1;
+}
+
+fn ceil(x) {
+  let f = floor(x);
+  if (f == x) { ret f; }
+  ret f + 1;
+}
+
+fn round(x) {
+  if (x >= 0) { ret floor(x + 0.5); }
+  ret ceil(x - 0.5);
+}
+
+// Integer exponent (float base OK). Negative exp → reciprocal.
+fn pow(base, exp) {
+  if (exp == 0) { ret 1.0; }
+  if (exp < 0) { ret 1.0 / pow(base, 0 - exp); }
+  let r = 1.0;
+  let i = 0;
+  while (i < exp) {
+    r = r * base;
+    i = i + 1;
+  }
+  ret r;
+}
+
+// Newton's method. x < 0 → nil.
+fn sqrt(x) {
+  if (x < 0) { ret nil; }
+  if (x == 0) { ret 0.0; }
+  let g = x;
+  if (x < 1.0) { g = 1.0; }
+  let i = 0;
+  while (i < 48) {
+    g = (g + x / g) / 2.0;
+    i = i + 1;
+  }
+  ret g;
+}
+
+fn hypot(a, b) {
+  ret sqrt(a * a + b * b);
+}
+
+fn lerp(a, b, t) {
+  ret a + (b - a) * t;
+}
+
+// Range-reduce toward [-pi, pi] then Taylor series.
+fn sin(x) {
+  let p = pi();
+  let y = x;
+  let guard = 0;
+  while (y > p) {
+    y = y - 2.0 * p;
+    guard = guard + 1;
+    if (guard > 100000) { ret 0.0; }
+  }
+  guard = 0;
+  while (y < 0.0 - p) {
+    y = y + 2.0 * p;
+    guard = guard + 1;
+    if (guard > 100000) { ret 0.0; }
+  }
+  let result = 0.0;
+  let term = y;
+  let k = 0;
+  while (k < 16) {
+    result = result + term;
+    term = term * (0.0 - y * y) / ((2.0 * k + 2.0) * (2.0 * k + 3.0));
+    k = k + 1;
+  }
+  ret result;
+}
+
+fn cos(x) {
+  let p = pi();
+  let y = x;
+  let guard = 0;
+  while (y > p) {
+    y = y - 2.0 * p;
+    guard = guard + 1;
+    if (guard > 100000) { ret 1.0; }
+  }
+  guard = 0;
+  while (y < 0.0 - p) {
+    y = y + 2.0 * p;
+    guard = guard + 1;
+    if (guard > 100000) { ret 1.0; }
+  }
+  let result = 0.0;
+  let term = 1.0;
+  let k = 0;
+  while (k < 16) {
+    result = result + term;
+    term = term * (0.0 - y * y) / ((2.0 * k + 1.0) * (2.0 * k + 2.0));
+    k = k + 1;
+  }
+  ret result;
+}
+
+fn tan(x) {
+  let c = cos(x);
+  if (c == 0) { ret nil; }
+  ret sin(x) / c;
+}

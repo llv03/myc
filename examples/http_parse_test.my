@@ -1,0 +1,12 @@
+// Unit-test HTTP helpers without binding a port.
+import http;
+
+let raw = "GET /hello HTTP/1.1\r\nHost: localhost\r\n\r\n";
+let req = http.parse_request(raw);
+out(req["method"]);
+out(req["path"]);
+
+let resp = http.mk_response(200, "text/plain", "hi");
+out(resp);
+out(http.text(200, "ok"));
+out(http.html(404, "nope"));

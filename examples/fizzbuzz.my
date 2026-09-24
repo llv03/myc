@@ -1,0 +1,18 @@
+// Countdown-style loop with when/else (fizzbuzz-ish numbers)
+let i = 1;
+loop (i <= 15) {
+  when (i % 15 == 0) {
+    out(1500); // stand-in for "FizzBuzz"
+  } else {
+    when (i % 3 == 0) {
+      out(300);  // "Fizz"
+    } else {
+      when (i % 5 == 0) {
+        out(500); // "Buzz"
+      } else {
+        out(i);
+      }
+    }
+  }
+  i = i + 1;
+}

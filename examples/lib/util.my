@@ -1,0 +1,7 @@
+fn double(n) {
+  ret n * 2;
+}
+
+fn greet(name) {
+  ret "hi " + name;
+}

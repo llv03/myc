@@ -1,0 +1,7 @@
+fn fib(n) {
+  when (n < 2) {
+    ret n;
+  }
+  ret fib(n - 1) + fib(n - 2);
+}
+out(fib(10));

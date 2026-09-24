@@ -1,0 +1,20 @@
+// Tiny HTTP server (manual run; not in make test):
+//   ./myc examples/http_demo.my
+//   curl http://127.0.0.1:8765/
+import http;
+
+fn handler(req) {
+  let path = req["path"];
+  if (path == "/") {
+    ret http.html(200,
+      "<html><body><h1>Hello from myc</h1>" +
+      "<p>method=" + req["method"] + "</p></body></html>");
+  }
+  if (path == "/api") {
+    ret http.json(200, "{\"ok\":true,\"lang\":\"myc\"}");
+  }
+  ret http.text(404, "Not Found: " + path);
+}
+
+out("Starting myc HTTP demo on :8765 …");
+http.serve(8765, handler);

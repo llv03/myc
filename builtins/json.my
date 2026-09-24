@@ -1,0 +1,378 @@
+// JSON subset: json.parse / json.stringify (uses __map_keys).
+
+fn substr(s, start, end) {
+  let r = "";
+  let i = start;
+  let n = len(s);
+  while (i < end) {
+    if (i >= n) { ret r; }
+    if (i < 0) { ret r; }
+    r = r + s[i];
+    i = i + 1;
+  }
+  ret r;
+}
+
+fn escape_str(s) {
+  let r = "";
+  let i = 0;
+  let n = len(s);
+  while (i < n) {
+    let c = s[i];
+    if (c == "\\") {
+      r = r + "\\\\";
+    } else {
+      if (c == "\"") {
+        r = r + "\\\"";
+      } else {
+        if (c == "\n") {
+          r = r + "\\n";
+        } else {
+          if (c == "\t") {
+            r = r + "\\t";
+          } else {
+            if (c == "\r") {
+              r = r + "\\r";
+            } else {
+              r = r + c;
+            }
+          }
+        }
+      }
+    }
+    i = i + 1;
+  }
+  ret r;
+}
+
+fn stringify_list(xs) {
+  let r = "[";
+  let i = 0;
+  let n = len(xs);
+  while (i < n) {
+    if (i > 0) { r = r + ","; }
+    let piece = stringify(xs[i]);
+    if (piece == nil) {
+      r = r + "null";
+    } else {
+      r = r + piece;
+    }
+    i = i + 1;
+  }
+  ret r + "]";
+}
+
+fn stringify_map(m) {
+  let keys = __map_keys(m);
+  if (keys == nil) { ret "{}"; }
+  let r = "{";
+  let first = 1;
+  let i = 0;
+  let n = len(keys);
+  while (i < n) {
+    let k = keys[i];
+    let v = m[k];
+    let ks = "";
+    if (type(k) == "string") {
+      ks = k;
+    } else {
+      ks = str(k);
+    }
+    let vs = stringify(v);
+    if (vs != nil) {
+      if (first == 0) { r = r + ","; }
+      first = 0;
+      r = r + "\"" + escape_str(ks) + "\":" + vs;
+    }
+    i = i + 1;
+  }
+  ret r + "}";
+}
+
+fn stringify(v) {
+  let t = type(v);
+  if (t == "nil") { ret "null"; }
+  if (t == "bool") {
+    if (v) { ret "true"; }
+    ret "false";
+  }
+  if (t == "int") { ret str(v); }
+  if (t == "float") { ret str(v); }
+  if (t == "string") { ret "\"" + escape_str(v) + "\""; }
+  if (t == "list") { ret stringify_list(v); }
+  if (t == "map") { ret stringify_map(v); }
+  // function/struct: omit
+  ret nil;
+}
+
+fn is_ws(c) {
+  if (c == " ") { ret true; }
+  if (c == "\t") { ret true; }
+  if (c == "\n") { ret true; }
+  if (c == "\r") { ret true; }
+  ret false;
+}
+
+fn skip_ws(s, i) {
+  let n = len(s);
+  while (i < n) {
+    if (is_ws(s[i])) {
+      i = i + 1;
+    } else {
+      ret i;
+    }
+  }
+  ret i;
+}
+
+fn digit_val(c) {
+  if (c == "0") { ret 0; }
+  if (c == "1") { ret 1; }
+  if (c == "2") { ret 2; }
+  if (c == "3") { ret 3; }
+  if (c == "4") { ret 4; }
+  if (c == "5") { ret 5; }
+  if (c == "6") { ret 6; }
+  if (c == "7") { ret 7; }
+  if (c == "8") { ret 8; }
+  if (c == "9") { ret 9; }
+  ret 0 - 1;
+}
+
+fn is_digit(c) {
+  ret digit_val(c) >= 0;
+}
+
+// Returns {"v": value, "i": next_index} or nil on failure.
+fn parse_string(s, i) {
+  let n = len(s);
+  if (i >= n) { ret nil; }
+  if (s[i] != "\"") { ret nil; }
+  i = i + 1;
+  let buf = "";
+  while (i < n) {
+    let c = s[i];
+    if (c == "\"") {
+      ret {"v": buf, "i": i + 1};
+    }
+    if (c == "\\") {
+      i = i + 1;
+      if (i >= n) { ret nil; }
+      let e = s[i];
+      if (e == "\"") {
+        buf = buf + "\"";
+      } else {
+        if (e == "\\") {
+          buf = buf + "\\";
+        } else {
+          if (e == "n") {
+            buf = buf + "\n";
+          } else {
+            if (e == "t") {
+              buf = buf + "\t";
+            } else {
+              if (e == "r") {
+                buf = buf + "\r";
+              } else {
+                if (e == "/") {
+                  buf = buf + "/";
+                } else {
+                  buf = buf + e;
+                }
+              }
+            }
+          }
+        }
+      }
+      i = i + 1;
+    } else {
+      buf = buf + c;
+      i = i + 1;
+    }
+  }
+  ret nil;
+}
+
+fn parse_number2(s, i) {
+  let n = len(s);
+  let neg = false;
+  if (i < n) {
+    if (s[i] == "-") {
+      neg = true;
+      i = i + 1;
+    }
+  }
+  if (i >= n) { ret nil; }
+  if (!is_digit(s[i])) { ret nil; }
+
+  let intpart = 0;
+  let cont = true;
+  while (cont) {
+    if (i >= n) {
+      cont = false;
+    } else {
+      if (is_digit(s[i])) {
+        intpart = intpart * 10 + digit_val(s[i]);
+        i = i + 1;
+      } else {
+        cont = false;
+      }
+    }
+  }
+
+  let is_float = false;
+  let frac = 0.0;
+  let place = 0.1;
+  if (i < n) {
+    if (s[i] == ".") {
+      is_float = true;
+      i = i + 1;
+      let fcont = true;
+      while (fcont) {
+        if (i >= n) {
+          fcont = false;
+        } else {
+          if (is_digit(s[i])) {
+            frac = frac + digit_val(s[i]) * place;
+            place = place / 10.0;
+            i = i + 1;
+          } else {
+            fcont = false;
+          }
+        }
+      }
+    }
+  }
+
+  // Exponents (1e3) not supported; stop before e/E.
+  let val = intpart;
+  if (is_float) {
+    val = intpart + frac;
+  }
+  if (neg) {
+    val = 0 - val;
+  }
+  ret {"v": val, "i": i};
+}
+
+fn parse_array(s, i) {
+  let n = len(s);
+  if (i >= n) { ret nil; }
+  if (s[i] != "[") { ret nil; }
+  i = i + 1;
+  i = skip_ws(s, i);
+  let arr = [];
+  if (i < n) {
+    if (s[i] == "]") {
+      ret {"v": arr, "i": i + 1};
+    }
+  }
+  let cont = true;
+  while (cont) {
+    let item = parse_value(s, i);
+    if (item == nil) { ret nil; }
+    arr[len(arr)] = item["v"];
+    i = skip_ws(s, item["i"]);
+    if (i >= n) { ret nil; }
+    if (s[i] == ",") {
+      i = skip_ws(s, i + 1);
+    } else {
+      if (s[i] == "]") {
+        ret {"v": arr, "i": i + 1};
+      }
+      ret nil;
+    }
+  }
+  ret nil;
+}
+
+fn parse_object(s, i) {
+  let n = len(s);
+  if (i >= n) { ret nil; }
+  if (s[i] != "{") { ret nil; }
+  i = i + 1;
+  i = skip_ws(s, i);
+  let obj = {};
+  if (i < n) {
+    if (s[i] == "}") {
+      ret {"v": obj, "i": i + 1};
+    }
+  }
+  let cont = true;
+  while (cont) {
+    let ks = parse_string(s, i);
+    if (ks == nil) { ret nil; }
+    let key = ks["v"];
+    i = skip_ws(s, ks["i"]);
+    if (i >= n) { ret nil; }
+    if (s[i] != ":") { ret nil; }
+    i = skip_ws(s, i + 1);
+    let vs = parse_value(s, i);
+    if (vs == nil) { ret nil; }
+    obj[key] = vs["v"];
+    i = skip_ws(s, vs["i"]);
+    if (i >= n) { ret nil; }
+    if (s[i] == ",") {
+      i = skip_ws(s, i + 1);
+    } else {
+      if (s[i] == "}") {
+        ret {"v": obj, "i": i + 1};
+      }
+      ret nil;
+    }
+  }
+  ret nil;
+}
+
+fn match_lit(s, i, lit) {
+  let n = len(s);
+  let ln = len(lit);
+  if (i + ln > n) { ret false; }
+  let j = 0;
+  while (j < ln) {
+    if (s[i + j] != lit[j]) { ret false; }
+    j = j + 1;
+  }
+  ret true;
+}
+
+fn parse_value(s, i) {
+  i = skip_ws(s, i);
+  let n = len(s);
+  if (i >= n) { ret nil; }
+  let c = s[i];
+  if (c == "\"") { ret parse_string(s, i); }
+  if (c == "[") { ret parse_array(s, i); }
+  if (c == "{") { ret parse_object(s, i); }
+  if (c == "t") {
+    if (match_lit(s, i, "true")) {
+      ret {"v": true, "i": i + 4};
+    }
+    ret nil;
+  }
+  if (c == "f") {
+    if (match_lit(s, i, "false")) {
+      ret {"v": false, "i": i + 5};
+    }
+    ret nil;
+  }
+  if (c == "n") {
+    if (match_lit(s, i, "null")) {
+      ret {"v": nil, "i": i + 4};
+    }
+    ret nil;
+  }
+  if (c == "-") { ret parse_number2(s, i); }
+  if (is_digit(c)) { ret parse_number2(s, i); }
+  ret nil;
+}
+
+fn parse(text) {
+  if (text == nil) { ret nil; }
+  if (type(text) != "string") { ret nil; }
+  let r = parse_value(text, 0);
+  if (r == nil) { ret nil; }
+  let rest = skip_ws(text, r["i"]);
+  if (rest != len(text)) { ret nil; }
+  ret r["v"];
+}

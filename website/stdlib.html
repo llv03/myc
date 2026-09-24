@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stdlib - myc</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div class="inner">
+      <a class="logo" href="index.html">myc</a>
+      <button type="button" class="nav-toggle" aria-label="Menu">Menu</button>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="language.html">Language</a>
+        <a href="stdlib.html">Stdlib</a>
+        <a href="docs/index.html">Docs</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <h1>Stdlib</h1>
+
+    <h2>VM builtins</h2>
+    <table>
+      <thead>
+        <tr><th>Builtin</th><th>Meaning</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>out(x)</code></td><td>print any value</td></tr>
+        <tr><td><code>len(x)</code></td><td>length of string / list / map</td></tr>
+        <tr><td><code>str(x)</code></td><td>convert to string</td></tr>
+        <tr><td><code>type(x)</code></td><td>type name string</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Packages</h2>
+    <table>
+      <thead>
+        <tr><th>Package</th><th>Role</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>math</code></td><td>sqrt, sin, pi, ...</td></tr>
+        <tr><td><code>fs</code></td><td>read/write/append/exists/remove</td></tr>
+        <tr><td><code>os</code></td><td>args, system, capture, getenv, cwd</td></tr>
+        <tr><td><code>net</code></td><td>listen, accept, recv, send, close</td></tr>
+        <tr><td><code>http</code></td><td>HTTP/1.1 parse, respond, serve</td></tr>
+        <tr><td><code>json</code></td><td>parse / stringify (subset)</td></tr>
+        <tr><td><code>csv</code></td><td>parse / stringify / read / write</td></tr>
+        <tr><td><code>graphics</code></td><td>Mac AppKit window (stub elsewhere)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>math</h2>
+    <pre><code>import math;
+out(math.sqrt(9));
+out(math.pi());</code></pre>
+    <p>
+      Also: <code>e</code>, <code>abs</code>, <code>min</code>, <code>max</code>,
+      <code>clamp</code>, <code>floor</code>, <code>ceil</code>, <code>round</code>,
+      <code>pow</code>, <code>sin</code>, <code>cos</code>, <code>tan</code>,
+      <code>hypot</code>, <code>lerp</code>. <code>sqrt(x)</code> returns
+      <code>nil</code> if <code>x &lt; 0</code>.
+    </p>
+
+    <h2>fs</h2>
+    <pre><code>import fs;
+fs.write("notes.txt", "hello");
+out(fs.read("notes.txt"));
+fs.remove("notes.txt");</code></pre>
+    <p>Paths are relative to the process cwd. Cap 8 MiB for reads.</p>
+
+    <h2>os</h2>
+    <pre><code>import os;
+out(os.args());
+let r = os.capture("echo hi");
+out(r["out"]);
+out(os.getenv("HOME"));
+out(os.cwd());</code></pre>
+    <p>
+      Pass only trusted strings to <code>system</code>/<code>capture</code>
+      (shell injection risk).
+    </p>
+
+    <h2>net / http</h2>
+    <pre><code>import net;
+let s = net.listen(8080);
+let c = net.accept(s);
+net.send(c, "hi");
+net.close(c);</code></pre>
+    <pre><code>import http;
+http.serve(8765, handler);
+http.serve_routes(8765, {"/": "&lt;h1&gt;hi&lt;/h1&gt;"});</code></pre>
+    <p>
+      Also: <code>mk_response</code>, <code>text</code>, <code>html</code>,
+      <code>json</code>, <code>parse_request</code>, <code>serve_text</code>.
+      Blocking sockets. HTTP/1.1 only.
+    </p>
+
+    <h2>json / csv</h2>
+    <pre><code>import json;
+let s = json.stringify({"a": 1});
+let v = json.parse(s);</code></pre>
+    <pre><code>import csv;
+let rows = csv.parse("a,b\n1,2\n");
+csv.write("out.csv", rows);</code></pre>
+    <p>
+      JSON is a practical subset (no <code>1e3</code> exponents). CSV is
+      RFC4180-ish with quoted fields.
+    </p>
+
+    <h2>graphics</h2>
+    <pre><code>import graphics;
+if (graphics.available()) {
+  graphics.open(640, 480, "myc");
+  graphics.text(24, 40, "Hello");
+  graphics.run();
+}</code></pre>
+    <p>
+      macOS AppKit only. Colors are floats in <code>0..1</code>. Text origin is
+      top-left. See <code>docs/graphics.md</code>.
+    </p>
+
+    <p>Full tables: <code>docs/stdlib.md</code>.</p>
+  </main>
+  <footer>
+    <div class="inner">myc language documentation</div>
+  </footer>
+  <script src="main.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+// v2 types: nil, bool, int, float, string
+out(nil);
+out(true);
+out(false);
+out(42);
+out(3.14);
+out("hello");
+out(type(nil));
+out(type(true));
+out(type(1));
+out(type(1.5));
+out(type("x"));
+out(str(99));
+out(len("abc"));

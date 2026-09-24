@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>myc</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div class="inner">
+      <a class="logo" href="index.html">myc</a>
+      <button type="button" class="nav-toggle" aria-label="Menu">Menu</button>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="language.html">Language</a>
+        <a href="stdlib.html">Stdlib</a>
+        <a href="docs/index.html">Docs</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <h1>myc</h1>
+    <p>
+      Small C11 language with a stack-based bytecode VM. Source files use the
+      <code>.my</code> extension. Pipeline: lex, parse (AST), compile (bytecode),
+      run (call-frame VM).
+    </p>
+    <p>
+      Values: nil, bool, int, float, string, list, map, struct, function.
+      Control flow: <code>if</code>/<code>while</code>/<code>for</code>
+      (aliases <code>when</code>/<code>loop</code>), compile-time imports, and a
+      <code>builtins/</code> stdlib.
+    </p>
+
+    <h2>Build and run</h2>
+    <pre><code>make
+./myc examples/fib.my</code></pre>
+    <p>
+      Also: <code>./myc -d examples/hello.my</code> (disassemble then run),
+      <code>make test</code>.
+    </p>
+    <p>Exit codes: <code>0</code> ok, <code>65</code> parse/compile error,
+      <code>70</code> runtime error.</p>
+
+    <h2>Pages</h2>
+    <ul>
+      <li><a href="language.html">Language</a> - syntax, types, imports</li>
+      <li><a href="stdlib.html">Stdlib</a> - builtins and packages</li>
+      <li><a href="docs/index.html">Docs</a> - README and full markdown docs as HTML</li>
+    </ul>
+    <p>
+      Full markdown sources live in <code>docs/</code>. HTML mirrors are under
+      <code>website/docs/</code>. See the project <code>README.md</code> for layout.
+    </p>
+
+    <h2>Requirements</h2>
+    <ul>
+      <li>C11 compiler (<code>cc</code>)</li>
+      <li>POSIX (sockets, <code>fork</code>/<code>pipe</code> for <code>os.capture</code>)</li>
+      <li>macOS AppKit only for graphics (stub elsewhere)</li>
+    </ul>
+  </main>
+  <footer>
+    <div class="inner">myc language documentation</div>
+  </footer>
+  <script src="main.js"></script>
+</body>
+</html>
